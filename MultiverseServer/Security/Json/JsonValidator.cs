@@ -15,16 +15,23 @@ namespace MultiverseServer.Security.Json
 
         public static bool ValidateJsonNotNullOrEmpty(Object obj)
         {
-            foreach(PropertyInfo pi in obj.GetType().GetProperties())
+            if (obj != null)
             {
-                if(pi.GetValue(obj) == null)
+                foreach (PropertyInfo pi in obj.GetType().GetProperties())
                 {
-                    return false;
+                    if (pi.GetValue(obj) == null)
+                    {
+                        return false;
+                    }
+                    if (pi.PropertyType == typeof(string) && string.IsNullOrWhiteSpace(((string)pi.GetValue(obj))))
+                    {
+                        return false;
+                    }
                 }
-                if(pi.PropertyType == typeof(string) && string.IsNullOrWhiteSpace(((string)pi.GetValue(obj))))
-                {
-                    return false;
-                }
+            }
+            else
+            {
+                return false;
             }
             return true;
         }

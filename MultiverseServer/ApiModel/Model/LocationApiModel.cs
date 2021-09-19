@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NetTopologySuite.Geometries;
 
 namespace MultiverseServer.ApiModel.Model
 {
@@ -14,6 +15,16 @@ namespace MultiverseServer.ApiModel.Model
         {
             this.longitude = longitude;
             this.latitude = latitude;
+        }
+
+        public Point ToDbModel()
+        {
+            return new Point(longitude, latitude);
+        }
+
+        public static LocationApiModel ToApiModel(Point dbModel)
+        {
+            return new LocationApiModel(dbModel.X, dbModel.Y); 
         }
     }
 }

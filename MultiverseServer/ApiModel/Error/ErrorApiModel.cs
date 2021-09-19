@@ -5,14 +5,16 @@ using System.Threading.Tasks;
 
 namespace MultiverseServer.ApiModel.Error
 {
-    enum ErrorType : int
+    public enum ErrorType : int
     {
         CredentialNotValid = 1,
         RefreshTokenExpire = 2,
         JsonNotValid = 10,
         UsernameAlreadyTaken = 50,
-
-
+        BadIdentificationNumber = 100,
+        IdentificationNumberDoNotGrantAccess = 101,
+        IllegalAction = 102,
+        BadListAccess = 110,
     }
 
     public class ErrorApiModel

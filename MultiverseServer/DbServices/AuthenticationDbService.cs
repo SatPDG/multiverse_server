@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace MultiverseServer.Services
 {
-    public class AuthenticationService
+    public class AuthenticationDbService
     {
 
-        private AuthenticationService()
+        private AuthenticationDbService()
         {
 
         }
@@ -31,6 +31,7 @@ namespace MultiverseServer.Services
                 try
                 {
                     authenticationDb.userID = userID;
+                    dbContext.authentication.Attach(authenticationDb);
                     dbContext.authentication.Update(authenticationDb);
                     dbContext.SaveChanges();
                 }
@@ -46,7 +47,9 @@ namespace MultiverseServer.Services
         {
             try
             {
-                dbContext.authentication.Remove(new AuthenticationDbModel { userID = userID });
+                AuthenticationDbModel dbModel = new AuthenticationDbModel { userID = userID };
+                dbContext.authentication.Attach(dbModel);
+                dbContext.authentication.Remove(dbModel);
                 dbContext.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)

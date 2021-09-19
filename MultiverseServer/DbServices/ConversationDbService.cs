@@ -8,20 +8,39 @@ using System.Threading.Tasks;
 
 namespace MultiverseServer.DatabaseService
 {
-    public class ConversationService
+    public class ConversationDbService
     {
-        private ConversationService()
+        private ConversationDbService()
         {
 
+        }
+
+        public static ConversationDbModel GetConversation(MultiverseDbContext dbContext, int conversationID)
+        {
+            ConversationDbModel conversation = null;
+
+            // Get the conversation from the db
+            conversation = dbContext.conversation.Find(conversationID);
+
+            return conversation;
+        }
+
+        public static IList<int> GetConversationUser(MultiverseDbContext dbContext, int conversationID, int offset, int count)
+        {
+            IList<int> userList = null;
+
+            // Get the conversation user
+            userList = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Select(c => (int)c.conversationUserID).Skip(offset).Take(count).ToList();
+            return userList;
         }
 
         public static ConversationDbModel CreateConversation(MultiverseDbContext dbContext, ConversationDbModel conversation, IList<int> userList)
         {
             ConversationDbModel newConversation = null;
 
-            // Make sure the user exist
-            int size = dbContext.user.Where(u => userList.Contains(u.userID)).Count();
-            if(size == userList.Count())
+            // Make sure the users exist
+            bool exist = UserDbService.CheckIfAllUsersExist(dbContext, userList);
+            if(exist)
             {
                 // Create the conversation
                 newConversation = new ConversationDbModel
@@ -107,23 +126,38 @@ namespace MultiverseServer.DatabaseService
             return list;
         }
 
-        public static bool AddUserToConversation(MultiverseDbContext dbContext, int userID, int conversationID)
+        public static bool AddUsersToConversation(MultiverseDbContext dbContext, IList<int> userIDList, int conversationID)
         {
             // Check that the conversation exist
             ConversationDbModel conversation = dbContext.conversation.Find(conversationID);
             if(conversation != null)
             {
-                // Check that the user is not already in the conversation
-                int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && cu.userID == userID).Count();
-                if(size >= 1)
+                // Make sure the users exists
+                int size = dbContext.user.Where(u => userIDList.Contains(u.userID)).Count();
+                if(size == userIDList.Count)
                 {
-                    ConversationUserDbModel conversationUser = new ConversationUserDbModel
+                    // Make sure the users are not already in the conversation
+                    size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && userIDList.Contains(cu.userID)).Count();
+                    if(size == 0)
                     {
-                        conversationID = conversationID,
-                        userID = userID,
-                    };
-                    dbContext.conversationUser.Add(conversationUser);
-                    dbContext.SaveChanges();
+                        // Add all the users to the conversation
+                        IList<ConversationUserDbModel> dbList = new List<ConversationUserDbModel>();
+                        foreach(int userID in userIDList)
+                        {
+                            dbList.Add(new ConversationUserDbModel
+                            {
+                                conversationID = conversationID,
+                                userID = userID,
+                            });
+                        }
+
+                        dbContext.conversationUser.AddRange(dbList);
+                        dbContext.SaveChanges();
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
@@ -137,32 +171,43 @@ namespace MultiverseServer.DatabaseService
             return true;
         }
 
-        public static bool RemoveUserFromConversation(MultiverseDbContext dbContext, int userID, int conversationID)
+        public static bool RemoveUsersFromConversation(MultiverseDbContext dbContext, IList<int> userIDList, int conversationID)
         {
             // Check that the conversation exist
             ConversationDbModel conversation = dbContext.conversation.Find(conversationID);
             if (conversation != null)
             {
-                // Make sur that it is not the last user of the conversation
-                int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Count();
-                if(size <= 1)
+                // Make sure the users are in the conversation
+                int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && userIDList.Contains(cu.userID)).Count();
+                if(size == 0)
                 {
-                    // Delete the conversation
-                    dbContext.conversation.Remove(new ConversationDbModel
+                    // Remove the users
+                    IList<ConversationUserDbModel> dbList = new List<ConversationUserDbModel>();
+                    foreach(int userID in userIDList)
                     {
-                        conversationID = conversationID,
-                    });
+                        dbList.Add(new ConversationUserDbModel
+                        {
+                            conversationID = conversationID,
+                            userID = userID
+                        });
+                    }
+
+                    dbContext.conversationUser.RemoveRange(dbList);
+                    dbContext.SaveChanges();
+
+                    // Make sure that there is still some user in the conversation. Otherwise delete it.
+                    size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Count();
+                    if(size == 0)
+                    {
+                        // Delete the conversation
+                        dbContext.conversation.Remove(conversation);
+                        dbContext.SaveChanges();
+                    }
                 }
                 else
                 {
-                    // Remove the user
-                    dbContext.conversationUser.Remove(new ConversationUserDbModel
-                    {
-                        conversationID = conversationID,
-                        userID = userID,
-                    });
+                    return false;
                 }
-                dbContext.SaveChanges();
             }
             else
             {
@@ -182,6 +227,12 @@ namespace MultiverseServer.DatabaseService
         {
             int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Count();
             return size;
+        }
+
+        public static bool IsUserInConversation(MultiverseDbContext dbContext, int userID, int conversationID)
+        {
+            int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && cu.conversationUserID == userID).Count();
+            return size == 1;
         }
 
         public static bool SendMessage(MultiverseDbContext dbContext, MessageDbModel messageDb)
@@ -271,6 +322,22 @@ namespace MultiverseServer.DatabaseService
             }
 
             return list;
+        }
+
+        public static MessageDbModel GetMessage(MultiverseDbContext dbContext, int messageid)
+        {
+            MessageDbModel message = dbContext.message.Find(messageid);
+            return message;
+        }
+
+        public static bool IsAuthorOfMessage(MultiverseDbContext dbContext, int userID, int messageID)
+        {
+            int size = dbContext.message.Where(m => m.messageID == messageID && m.authorID == userID).Count();
+            if(size <= 0)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -7,29 +7,38 @@ using System.Threading.Tasks;
 
 namespace MultiverseServer.DatabaseService
 {
-    public class RelationshipService
+    public class RelationshipDbService
     {
-        private RelationshipService()
+        private RelationshipDbService()
         {
 
         }
 
         public static bool SendFriendshipRequest(MultiverseDbContext dbContext, int fromUserID, int toUserID)
         {
-            // Make sure the request and the relation does not exist.
-            int size = dbContext.relationshipRequest.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
-            size += dbContext.relationship.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
-
-            if (size == 0)
+            // Make sure the users exists
+            bool exist = UserDbService.CheckIfAllUsersExist(dbContext, new List<int> { fromUserID, toUserID });
+            if (exist)
             {
-                RelationshipRequestDbModel dbModel = new RelationshipRequestDbModel
-                {
-                    followerID = fromUserID,
-                    followedID = toUserID,
-                };
+                // Make sure the request and the relation does not exist.
+                int size = dbContext.relationshipRequest.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
+                size += dbContext.relationship.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
 
-                dbContext.relationshipRequest.Add(dbModel);
-                dbContext.SaveChanges();
+                if (size == 0)
+                {
+                    RelationshipRequestDbModel dbModel = new RelationshipRequestDbModel
+                    {
+                        followerID = fromUserID,
+                        followedID = toUserID,
+                    };
+
+                    dbContext.relationshipRequest.Add(dbModel);
+                    dbContext.SaveChanges();
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {

@@ -389,4 +389,5 @@ FodyWeavers.xsd
 
 # Remove the server sensitive data
 *appsettings.json
+*apptestsettings.json
 *appsettings.Development.json

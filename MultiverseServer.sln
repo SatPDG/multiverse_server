@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31321.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiverseServer", "MultiverseServer\MultiverseServer.csproj", "{E06843AD-9B10-4834-AED8-BFE3FC365417}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiverseServer", "MultiverseServer\MultiverseServer.csproj", "{E06843AD-9B10-4834-AED8-BFE3FC365417}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiverseServerTest", "MultiverseServerTest\MultiverseServerTest.csproj", "{870C363F-BE04-4AA1-972F-044F7FF3A906}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E06843AD-9B10-4834-AED8-BFE3FC365417} = {E06843AD-9B10-4834-AED8-BFE3FC365417}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{E06843AD-9B10-4834-AED8-BFE3FC365417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E06843AD-9B10-4834-AED8-BFE3FC365417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E06843AD-9B10-4834-AED8-BFE3FC365417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{870C363F-BE04-4AA1-972F-044F7FF3A906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{870C363F-BE04-4AA1-972F-044F7FF3A906}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{870C363F-BE04-4AA1-972F-044F7FF3A906}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{870C363F-BE04-4AA1-972F-044F7FF3A906}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

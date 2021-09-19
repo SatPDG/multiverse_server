@@ -14,4 +14,10 @@ namespace MultiverseServer.DatabaseModel
         public byte messageType { get; set; }
         public string message { get; set; }
     }
+
+    public enum MessageType : byte
+    {
+        TEXT_MESSAGE = 0,
+        IMAGE_MESSAGE = 1,
+    }
 }

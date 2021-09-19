@@ -19,7 +19,7 @@ namespace MultiverseServer.Security.Token
         public JwtTokenService(IConfiguration config)
         {
             secret = config.GetSection("JwtConfig").GetSection("secret").Value;
-            expDate = config.GetSection("JwtConfig").GetSection("expirationInMinutes").Value;
+            expDate = config.GetSection("JwtConfig").GetSection("expirationInSeconds").Value;
         }
 
         public string GenerateToken(int userID, string username, string tokenLevel)
@@ -35,7 +35,7 @@ namespace MultiverseServer.Security.Token
                     new Claim("userID", userID.ToString()),
                     new Claim("level", tokenLevel)
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(expDate)),
+                Expires = DateTime.UtcNow.AddSeconds(double.Parse(expDate)),
                 NotBefore = DateTime.Now,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             };

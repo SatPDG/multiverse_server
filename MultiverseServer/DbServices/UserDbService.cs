@@ -11,9 +11,9 @@ using NetTopologySuite.Geometries;
 
 namespace MultiverseServer.DatabaseService
 {
-    public class UserService
+    public class UserDbService
     {
-        private UserService()
+        private UserDbService()
         {
 
         }
@@ -154,18 +154,29 @@ namespace MultiverseServer.DatabaseService
         public static UserDbModel GetUser(MultiverseDbContext dbContext, int userID)
         {
             UserDbModel user = dbContext.user.Find(userID);
+       
+            if (user != null)
+            {
+                dbContext.Entry(user).State = EntityState.Detached;
 
-            // Crush the password
-            user.password = null;
-
+                // Crush the password
+                user.password = "";
+            }
             return user;
         }
 
         public static UserDbModel GetUser(MultiverseDbContext dbContext, string email, string password)
         {
             // Find the user
-            UserDbModel user = dbContext.user.Where(u => u.email.Equals(email)).Take(1).ToList()[1];
-
+            UserDbModel user = null;
+            try
+            {
+                user = dbContext.user.Where(u => u.email.Equals(email)).First();
+            }
+            catch
+            {
+                return null;
+            }
             if(user != null)
             {
                 // Validate the password
@@ -179,6 +190,28 @@ namespace MultiverseServer.DatabaseService
             }
 
             return null;
+        }
+
+        public static bool CheckIfUserExists(MultiverseDbContext dbContext, int userID)
+        {
+            int size = dbContext.user.Where(u => u.userID == userID).Count();
+            if(size != 1)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool CheckIfAllUsersExist(MultiverseDbContext dbContext, IList<int> userList)
+        {
+            int size = dbContext.user.Where(u => userList.Contains(u.userID)).Count();
+            if(size != userList.Count)
+            {
+                return false;
+            }
+
+            return false;
         }
 
         public static IList<UserDbModel> SearchUserByName(MultiverseDbContext dbContext, string searchStr, int offset, int count)
