@@ -5,6 +5,7 @@ using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Request.User;
 using MultiverseServer.ApiModel.Response;
 using MultiverseServer.ApiModel.Response.User;
+using MultiverseServer.ApiServices;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServer.DatabaseService;
@@ -33,27 +34,27 @@ namespace MultiverseServer.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id}")]
-        public IActionResult UserProfil(int id)
+        [HttpGet("{userID}")]
+        public IActionResult GetUserInfo(int userID)
         {
-            // Get the user information.
-            UserDbModel model =  UserDbService.GetUser(DbContext, id);
-            if(model == null)
-            {
-                // There is no user with this id.
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, userID);
+            Response.StatusCode = response.code;
 
-            // Create the api model
-            UserResponseModel apiModel = new UserResponseModel();
-            apiModel.userID = model.userID;
-            apiModel.firstname = model.firstname;
-            apiModel.lastname = model.lastname;
-            apiModel.nbrOfFollower = RelationshipDbService.GetFollowerOfUserCount(DbContext, id);
-            apiModel.nbrOfFollowed = RelationshipDbService.GetFollowedOfUserCount(DbContext, id);
+            return new JsonResult(response.obj);
+        }
 
-            return new JsonResult(apiModel);
+        [Authorize]
+        [HttpGet("user")]
+        public IActionResult GetUserOwnInfo()
+        {
+            // Get the user id.
+            string token = HttpRequestUtil.GetTokenFromRequest(Request);
+            int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
+
+            ApiResponse response = UserApiService.GetUserOwnInfo(DbContext, userID);
+            Response.StatusCode = response.code;
+
+            return new JsonResult(response.obj);
         }
         
         /// <summary>

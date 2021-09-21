@@ -124,7 +124,8 @@ namespace MultiverseServer.DatabaseService
 
         public static IList<UserDbModel> GetFollowerOfUser(MultiverseDbContext dbContext, int userID, int offset, int count)
         {
-            IList<UserDbModel> userList = dbContext.relationship.Join(dbContext.user,
+            IList<UserDbModel> userList = dbContext.relationship.Where(r => r.followedID == userID)
+                                                                .Join(dbContext.user,
                                                                       r => r.followerID,
                                                                       u => u.userID,
                                                                       (f, u) =>
@@ -145,7 +146,8 @@ namespace MultiverseServer.DatabaseService
 
         public static IList<UserDbModel> GetFollowedOfUser(MultiverseDbContext dbContext, int userID, int offset, int count)
         {
-            IList<UserDbModel> userList = dbContext.relationship.Join(dbContext.user,
+            IList<UserDbModel> userList = dbContext.relationship.Where(r => r.followerID == userID)
+                                                                .Join(dbContext.user,
                                                                       r => r.followedID,
                                                                       u => u.userID,
                                                                       (f, u) =>
@@ -166,7 +168,8 @@ namespace MultiverseServer.DatabaseService
 
         public static IList<UserDbModel> GetRequestFollowerOfUser(MultiverseDbContext dbContext, int userID, int offset, int count)
         {
-            IList<UserDbModel> userList = dbContext.relationshipRequest.Join(dbContext.user,
+            IList<UserDbModel> userList = dbContext.relationshipRequest.Where(r => r.followedID == userID)
+                                                                       .Join(dbContext.user,
                                                                       r => r.followerID,
                                                                       u => u.userID,
                                                                       (f, u) =>
@@ -187,7 +190,8 @@ namespace MultiverseServer.DatabaseService
 
         public static IList<UserDbModel> GetRequestFollowedOfUser(MultiverseDbContext dbContext, int userID, int offset, int count)
         {
-            IList<UserDbModel> userList = dbContext.relationshipRequest.Join(dbContext.user,
+            IList<UserDbModel> userList = dbContext.relationshipRequest.Where(r => r.followerID == userID)
+                                                                       .Join(dbContext.user,
                                                                       r => r.followedID,
                                                                       u => u.userID,
                                                                       (f, u) =>
@@ -218,84 +222,28 @@ namespace MultiverseServer.DatabaseService
 
         public static int GetFollowerOfUserCount(MultiverseDbContext dbContext, int userID)
         {
-            int size = dbContext.relationship.Join(dbContext.user,
-                                                                      r => r.followerID,
-                                                                      u => u.userID,
-                                                                      (f, u) =>
-                                                                      new
-                                                                      {
-                                                                          u.userID,
-                                                                          u.firstname,
-                                                                          u.lastname
-                                                                      }).Select(u => new UserDbModel
-                                                                      {
-                                                                          userID = u.userID,
-                                                                          firstname = u.firstname,
-                                                                          lastname = u.lastname
-                                                                      }).Count();
+            int size = dbContext.relationship.Where(r => r.followedID == userID).Count();
 
             return size;
         }
 
         public static int GetFollowedOfUserCount(MultiverseDbContext dbContext, int userID)
         {
-            int size = dbContext.relationship.Join(dbContext.user,
-                                                                      r => r.followedID,
-                                                                      u => u.userID,
-                                                                      (f, u) =>
-                                                                      new
-                                                                      {
-                                                                          u.userID,
-                                                                          u.firstname,
-                                                                          u.lastname
-                                                                      }).Select(u => new UserDbModel
-                                                                      {
-                                                                          userID = u.userID,
-                                                                          firstname = u.firstname,
-                                                                          lastname = u.lastname
-                                                                      }).Count();
+            int size = dbContext.relationship.Where(r => r.followerID == userID).Count();
 
             return size;
         }
 
         public static int GetRequestFollowerOfUserCount(MultiverseDbContext dbContext, int userID)
         {
-            int size = dbContext.relationshipRequest.Join(dbContext.user,
-                                                                      r => r.followerID,
-                                                                      u => u.userID,
-                                                                      (f, u) =>
-                                                                      new
-                                                                      {
-                                                                          u.userID,
-                                                                          u.firstname,
-                                                                          u.lastname
-                                                                      }).Select(u => new UserDbModel
-                                                                      {
-                                                                          userID = u.userID,
-                                                                          firstname = u.firstname,
-                                                                          lastname = u.lastname
-                                                                      }).Count();
+            int size = dbContext.relationshipRequest.Where(r => r.followedID == userID).Count();
 
             return size;
         }
 
         public static int GetRequestFollowedOfUserCount(MultiverseDbContext dbContext, int userID)
         {
-            int size = dbContext.relationshipRequest.Join(dbContext.user,
-                                                                      r => r.followedID,
-                                                                      u => u.userID,
-                                                                      (f, u) =>
-                                                                      new
-                                                                      {
-                                                                          u.userID,
-                                                                          u.firstname,
-                                                                          u.lastname
-                                                                      }).Select(u => new UserDbModel
-                                                                      {
-                                                                          userID = u.userID,
-                                                                          firstname = u.firstname,
-                                                                          lastname = u.lastname
-                                                                      }).Count();
+            int size = dbContext.relationshipRequest.Where(r => r.followerID == userID).Count();
 
             return size;
         }

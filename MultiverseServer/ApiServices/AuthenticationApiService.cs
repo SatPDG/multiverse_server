@@ -190,9 +190,6 @@ namespace MultiverseServer.ApiServices
             // Make sure the refrseh token is still valid
             if (authentication.expireTime <= DateTime.Now)
             {
-                // Remove the token from the database
-                AuthenticationDbService.RemoveAuthentication(dbContext, userID);
-
                 response.code = (int)HttpStatusCode.Forbidden;
                 response.obj = new ErrorApiModel((int)ErrorType.RefreshTokenExpire, ErrorMessage.REFRESH_TOKEN_EXPIRED_MESSAGE);
                 return response;
