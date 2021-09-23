@@ -17,12 +17,12 @@ using Xunit;
 namespace MultiverseServerTest.Tests.UserApiServiceTest
 {
     [Collection("TestSetUp")]
-    public class GetUserInfo : IDisposable
+    public class GetUserInfoTest : IDisposable
     {
         private IConfiguration Config;
         private MultiverseDbContext DbContext;
 
-        public GetUserInfo(TestFixture fixture)
+        public GetUserInfoTest(TestFixture fixture)
         {
             this.Config = fixture.Config;
             this.DbContext = fixture.DbContext;

@@ -226,8 +226,7 @@ namespace MultiverseServer.DatabaseService
 
         public static IList<UserDbModel> SearchUserByLocation(MultiverseDbContext dbContext, Point location, int offset, int count)
         {
-            IList<UserDbModel>  userList = dbContext.user.OrderBy(u => u.lastLocation.Distance(location))
-                .Skip(offset).Take(count).ToList();
+            IList<UserDbModel> userList = dbContext.user.OrderBy(u => MultiverseDbContext.st_distance_sphere(u.lastLocation, location)).Skip(offset).Take(count).ToList();
 
             return userList;
         }

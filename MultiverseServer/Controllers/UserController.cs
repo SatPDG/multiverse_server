@@ -63,51 +63,26 @@ namespace MultiverseServer.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("users")]
-        public IActionResult Users()
+        public IActionResult GetUserList()
         {
             // Get the user id.
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Get the user location
-            UserDbModel model = UserDbService.GetUser(DbContext, userID);
+            ApiResponse response = UserApiService.GetUserList(DbContext, userID);
+            Response.StatusCode = response.code;
 
-            // Get the list of users
-            IList<UserDbModel> userList = UserDbService.SearchUserByLocation(DbContext, model.lastLocation, 0, 10);
-
-            // Convert it to a response
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, userList.Count, 0, userList.Count);
-
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
         [HttpPost("search")]
         public IActionResult SearchForUsers([FromBody] UserSearchRequestModel request)
         {
-            // Verify the list access
-            if (!ListAccessValidator.NormalizeListAccess(request))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS));
-            }
+            ApiResponse response = UserApiService.SearchForUsers(DbContext, request);
+            Response.StatusCode = response.code;
 
-            IList<UserDbModel> userList = null;
-
-            // Make the search
-            if (string.IsNullOrEmpty(request.nameSearch))
-            {
-                // Make a location search
-                userList = UserDbService.SearchUserByLocation(DbContext, request.locationSearch.ToDbModel(), request.offset, request.count);
-            }
-            else
-            {
-                // Make a name search
-                userList = UserDbService.SearchUserByName(DbContext, request.nameSearch, request.offset, request.count);
-            }
-
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, request.count, request.offset, -1);
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
     }
 }

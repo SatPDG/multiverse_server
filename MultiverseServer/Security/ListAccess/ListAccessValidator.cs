@@ -23,19 +23,19 @@ namespace MultiverseServer.Security.ListAccess
 
             foreach (PropertyInfo pi in obj.GetType().GetProperties())
             {
-                if (pi.Name.Equals("count") && pi.GetType() == typeof(int))
+                if (pi.Name.Equals("count") && pi.PropertyType == typeof(int))
                 {
                     countIsPresent = true;
-                }
-                else if (pi.Name.Equals("offset") && pi.GetType() == typeof(int))
-                {
-                    offsetIsPresent = true;
                     object val = pi.GetValue(obj);
                     int ival = (int)val;
                     if (ival > MAX_COUNT)
                     {
                         pi.SetValue(obj, MAX_COUNT);
                     }
+                }
+                else if (pi.Name.Equals("offset") && pi.PropertyType == typeof(int))
+                {
+                    offsetIsPresent = true;
                 }
             }
             return countIsPresent && offsetIsPresent;

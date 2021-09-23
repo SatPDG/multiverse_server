@@ -1,9 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using MultiverseServer.Database;
 using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MultiverseServer.DatabaseContext
@@ -27,6 +32,18 @@ namespace MultiverseServer.DatabaseContext
         {
 
         }
+
+        // "CodeFirstDatabaseSchema" is a convention mandatory schema name
+        // "LatLongDistanceCalc" is the name of your function
+
+        [DbFunction("CodeFirstDatabaseSchema", "LatLongDistanceCalc")]
+        public static int LatLongDistanceCalc(int fromLat, int fromLong,
+                                                           int toLat, int toLong)
+        {
+            // no need to provide an implementation
+            throw new NotSupportedException();
+        }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -105,6 +122,19 @@ namespace MultiverseServer.DatabaseContext
                 modelBuilder.Entity<MessageDbModel>().HasOne<UserDbModel>().WithMany().HasPrincipalKey(u => u.userID).HasForeignKey(m => m.conversationID).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("fk_message_user");
                 modelBuilder.Entity<MessageDbModel>().HasIndex(m => m.conversationID).HasDatabaseName("message_idx");
             }
+
+            // Custom functions
+            {
+                //modelBuilder.HasDbFunction(typeof(MultiverseDbContext).GetMethod(nameof(MultiverseDbContext.st_distance_sphere))).HasName("st_distance_sphere").HasSchema("");
+                //    .HasTranslation(args => { return new SqlFunctionExpression("st_distance_sphere", args, typeof(double), null);
+                //});
+            }
+        }
+
+        [DbFunction("st_distance_sphere")]
+        public static double st_distance_sphere(NetTopologySuite.Geometries.Point p1, NetTopologySuite.Geometries.Point p2)
+        {
+            throw new NotImplementedException();
         }
     }
 }
