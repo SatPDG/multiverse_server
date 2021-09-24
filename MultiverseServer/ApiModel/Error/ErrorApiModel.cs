@@ -15,6 +15,7 @@ namespace MultiverseServer.ApiModel.Error
         IdentificationNumberDoNotGrantAccess = 101,
         IllegalAction = 102,
         BadListAccess = 110,
+        UnknowDbError = 200,
     }
 
     public class ErrorApiModel

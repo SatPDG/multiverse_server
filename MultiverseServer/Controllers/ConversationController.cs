@@ -8,6 +8,7 @@ using MultiverseServer.ApiModel.Request.Conversation;
 using MultiverseServer.ApiModel.Request.Util;
 using MultiverseServer.ApiModel.Response;
 using MultiverseServer.ApiModel.Response.Conversation;
+using MultiverseServer.ApiServices;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServer.DatabaseService;
@@ -37,133 +38,59 @@ namespace MultiverseServer.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id}")]
-        public IActionResult GetConversationInfo(int id)
+        [HttpGet("{conversationID}")]
+        public IActionResult GetConversationInfo(int conversationID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Make sur the user is in the conversation
-            if(!ConversationDbService.IsUserInConversation(DbContext, userID, id))
-            {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.IdentificationNumberDoNotGrantAccess, ErrorMessage.IDENTIFICATION_NUMBER_DO_NOT_GRANT_ACCESS));
-            }
+            ApiResponse response = ConversationApiService.GetConversationInfo(DbContext, userID, conversationID);
+            Response.StatusCode = response.code;
 
-            // Get the conversation info
-            ConversationDbModel conversationDbModel = ConversationDbService.GetConversation(DbContext, id);
-            int nbrOfUser = ConversationDbService.GetNumberOfUser(DbContext, id);
-
-            // Create the api obj
-            ConversationResponseModel apiModel = new ConversationResponseModel();
-            apiModel.conversationID = conversationDbModel.conversationID;
-            apiModel.name = conversationDbModel.name;
-            apiModel.lastUpdate = conversationDbModel.lastUpdate.ToString();
-            apiModel.nbrOfUser = nbrOfUser;
-
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
-        [HttpPost("{id}")]
-        public IActionResult SetConversationInfo(int id, [FromBody] UpdateConversationRequest model)
+        [HttpPost("{conversationID}")]
+        public IActionResult SetConversationInfo(int conversationID, [FromBody] UpdateConversationRequest request)
         {
-            // Validate the json
-            if (!JsonValidator.ValidateJsonNotNullOrEmpty(model))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.JsonNotValid, ErrorMessage.JSON_NOT_VALID_MESSAGE));
-            }
-
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Make sur the user is in the conversation
-            if (!ConversationDbService.IsUserInConversation(DbContext, userID, id))
-            {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.IdentificationNumberDoNotGrantAccess, ErrorMessage.IDENTIFICATION_NUMBER_DO_NOT_GRANT_ACCESS));
-            }
+            ApiResponse response = ConversationApiService.SetConversationInfo(DbContext, userID, conversationID, request);
+            Response.StatusCode = response.code;
 
-            // Update the conversation
-            ConversationDbModel dbModel = new ConversationDbModel();
-            dbModel.name = model.name;
-            dbModel.lastUpdate = DateTime.Now.Date;
-            bool isDone = ConversationDbService.UpdateConversation(DbContext, id, dbModel);
-
-            if(!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
-        [HttpDelete("{id}")]
-        public IActionResult DeleteConversation(int id)
+        [HttpDelete("{conversationID}")]
+        public IActionResult DeleteConversation(int conversationID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Make sur the user is in the conversation
-            if (!ConversationDbService.IsUserInConversation(DbContext, userID, id))
-            {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.IdentificationNumberDoNotGrantAccess, ErrorMessage.IDENTIFICATION_NUMBER_DO_NOT_GRANT_ACCESS));
-            }
+            ApiResponse response = ConversationApiService.DeleteConversation(DbContext, userID, conversationID);
+            Response.StatusCode = response.code;
 
-            // Delete the conversation
-            bool isDone = ConversationDbService.DeleteConversation(DbContext, id);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
-
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
         [HttpPost("new")]
-        public IActionResult CreateConversation([FromBody] CreateConversationRequest model)
+        public IActionResult CreateConversation([FromBody] CreateConversationRequest request)
         {
-            // Validate the json
-            if (!JsonValidator.ValidateJsonNotNullOrEmpty(model))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.JsonNotValid, ErrorMessage.JSON_NOT_VALID_MESSAGE));
-            }
-
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Make sure the user is in the conversation user list
-            if (!model.users.Contains(userID))
-            {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION));
-            }
+            ApiResponse response = ConversationApiService.CreateConversation(DbContext, userID, request);
+            Response.StatusCode = response.code;
 
-            // Create the conversation
-            ConversationDbModel dbModel = new ConversationDbModel();
-            dbModel.name = model.name;
-            dbModel.lastUpdate = DateTime.Now.Date;
-            dbModel = ConversationDbService.CreateConversation(DbContext, dbModel, model.users);
-
-            if(dbModel == null)
-            {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION));
-            }
-
-            ConversationApiModel apiModel = ConversationApiModel.ToApiModel(dbModel);
-
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]

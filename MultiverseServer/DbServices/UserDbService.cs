@@ -211,7 +211,7 @@ namespace MultiverseServer.DatabaseService
                 return false;
             }
 
-            return false;
+            return true;
         }
 
         public static IList<UserDbModel> SearchUserByName(MultiverseDbContext dbContext, string searchStr, int offset, int count)
