@@ -67,7 +67,7 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             Assert.Equal(3, size);
 
             size = DbContext.message.Where(cu => cu.conversationID == 1).Count();
-            Assert.Equal(5, size);
+            Assert.Equal(6, size);
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             Assert.Equal(3, size);
 
             size = DbContext.message.Where(cu => cu.conversationID == 1).Count();
-            Assert.Equal(5, size);
+            Assert.Equal(6, size);
         }
 
         [Fact]

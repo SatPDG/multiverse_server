@@ -177,36 +177,25 @@ namespace MultiverseServer.DatabaseService
             ConversationDbModel conversation = dbContext.conversation.Find(conversationID);
             if (conversation != null)
             {
-                // Make sure the users are in the conversation
-                int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && userIDList.Contains(cu.userID)).Count();
-                if(size == 0)
-                {
-                    // Remove the users
-                    IList<ConversationUserDbModel> dbList = new List<ConversationUserDbModel>();
-                    foreach(int userID in userIDList)
-                    {
-                        dbList.Add(new ConversationUserDbModel
-                        {
-                            conversationID = conversationID,
-                            userID = userID
-                        });
-                    }
-
-                    dbContext.conversationUser.RemoveRange(dbList);
-                    dbContext.SaveChanges();
-
-                    // Make sure that there is still some user in the conversation. Otherwise delete it.
-                    size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Count();
-                    if(size == 0)
-                    {
-                        // Delete the conversation
-                        dbContext.conversation.Remove(conversation);
-                        dbContext.SaveChanges();
-                    }
-                }
-                else
+                // Get the users to remove
+                IList<ConversationUserDbModel> userList = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && userIDList.Contains(cu.userID)).ToList();
+                
+                // Make sure all the user are in the conversation
+                if(userList.Count != userIDList.Count)
                 {
                     return false;
+                }
+                
+                dbContext.conversationUser.RemoveRange(userList);
+                dbContext.SaveChanges();
+
+                // Make sure that there is still some user in the conversation. Otherwise delete it.
+                int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Count();
+                if(size == 0)
+                {
+                    // Delete the conversation
+                    dbContext.conversation.Remove(conversation);
+                    dbContext.SaveChanges();
                 }
             }
             else
@@ -263,20 +252,15 @@ namespace MultiverseServer.DatabaseService
             return true;
         }
 
-        public static bool DeleteMessage(MultiverseDbContext dbContext, int userID, int messageID)
+        public static bool DeleteMessage(MultiverseDbContext dbContext, int messageID)
         {
-            // Make sur the user is the author
-            MessageDbModel messageDb = dbContext.message.Find(messageID);
-            if(messageDb != null && messageDb.authorID == userID)
+            MessageDbModel dbModel = new MessageDbModel()
             {
-                // Delete the message from the table
-                dbContext.message.Remove(new MessageDbModel { messageID = messageID });
-            }
-            else
-            {
-                return false;
-            }
-
+                messageID = messageID,
+            };
+            dbContext.message.Attach(dbModel);
+            dbContext.message.Remove(dbModel);
+            dbContext.SaveChanges();
             return true;
         }
 

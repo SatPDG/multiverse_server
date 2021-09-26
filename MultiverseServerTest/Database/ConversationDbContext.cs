@@ -20,7 +20,7 @@ namespace MultiverseServerTest.Database
         {
             date = DateTime.Now;
             // Add users
-            for (int i = 1; i < 6; i++)
+            for (int i = 1; i < 7; i++)
             {
                 UserDbModel model = new UserDbModel()
                 {
@@ -72,7 +72,7 @@ namespace MultiverseServerTest.Database
             }
 
             // Add message to conv
-            for(int i = 1; i < 6; i++)
+            for(int i = 1; i < 5; i++)
             {
                 MessageDbModel mess1 = new MessageDbModel()
                 {
@@ -103,6 +103,37 @@ namespace MultiverseServerTest.Database
                 dbContext.message.Add(mess3);
                 dbContext.SaveChanges();
             }
+            {
+                MessageDbModel mess1 = new MessageDbModel()
+                {
+                    authorID = 2,
+                    messageType = 0,
+                    conversationID = 1,
+                    publishedTime = DateTime.Now,
+                    message = "message_extra1",
+                };
+                MessageDbModel mess2 = new MessageDbModel()
+                {
+                    authorID = 3,
+                    messageType = 0,
+                    conversationID = 1,
+                    publishedTime = DateTime.Now,
+                    message = "message_extra2",
+                };
+                MessageDbModel mess3 = new MessageDbModel()
+                {
+                    authorID = 3,
+                    messageType = 0,
+                    conversationID = 3,
+                    publishedTime = DateTime.Now,
+                    message = "message_extra3",
+                };
+                dbContext.message.Add(mess1);
+                dbContext.message.Add(mess2);
+                dbContext.message.Add(mess3);
+                dbContext.SaveChanges();
+            }
+
 
             dbContext.ChangeTracker.Clear();
         }

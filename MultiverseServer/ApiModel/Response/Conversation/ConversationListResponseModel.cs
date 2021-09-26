@@ -9,7 +9,7 @@ namespace MultiverseServer.ApiModel.Response.Conversation
 {
     public class ConversationListResponseModel
     {
-        public IList<ConversationApiModel> users { get; set; }
+        public IList<ConversationApiModel> conversations { get; set; }
         public int count { get; set; }
         public int offset { get; set; }
         public int totalSize { get; set; }
@@ -17,10 +17,10 @@ namespace MultiverseServer.ApiModel.Response.Conversation
         public static ConversationListResponseModel ToApiModel(IList<ConversationDbModel> conversationList, int count, int offset, int totalSize)
         {
             ConversationListResponseModel apiModel = new ConversationListResponseModel();
-            apiModel.users = new List<ConversationApiModel>();
+            apiModel.conversations = new List<ConversationApiModel>();
             foreach(ConversationDbModel dbModel in conversationList)
             {
-                apiModel.users.Add(ConversationApiModel.ToApiModel(dbModel));
+                apiModel.conversations.Add(ConversationApiModel.ToApiModel(dbModel));
             }
 
             apiModel.count = count;
