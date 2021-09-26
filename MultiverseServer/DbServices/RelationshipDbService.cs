@@ -47,25 +47,27 @@ namespace MultiverseServer.DatabaseService
             return true;
         }
 
-        public static bool AcceptFriendshipRequest(MultiverseDbContext dbContext, int fromUserID, int toUserID)
+        public static bool AcceptFriendshipRequest(MultiverseDbContext dbContext, int followerID, int followedID)
         {
-            // Make sur the friendship request exist
-            int size = dbContext.relationshipRequest.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
-            if (size >= 1)
+            RelationshipRequestDbModel relationReq = null;
+            try
             {
-                // Remove relation from request
-                RelationshipRequestDbModel relationReq = new RelationshipRequestDbModel
-                {
-                    followerID = fromUserID,
-                    followedID = toUserID,
-                };
+                relationReq = dbContext.relationshipRequest.Where(rr => rr.followerID == followerID && rr.followedID == followedID).First();
+            }
+            catch
+            {
+                return false;
+            }
+
+            if(relationReq != null)
+            {
                 dbContext.relationshipRequest.Remove(relationReq);
 
                 // Add the relationship
                 RelationshipDbModel relation = new RelationshipDbModel
                 {
-                    followerID = fromUserID,
-                    followedID = toUserID,
+                    followerID = followerID,
+                    followedID = followedID,
                 };
                 dbContext.relationship.Add(relation);
 
@@ -75,21 +77,26 @@ namespace MultiverseServer.DatabaseService
             {
                 return false;
             }
+
             return true;
         }
 
-        public static bool DeleteFriendshipRequest(MultiverseDbContext dbContext, int fromUserID, int toUserID)
+        public static bool DeleteFriendshipRequest(MultiverseDbContext dbContext, int followerID, int followedID)
         {
-            // Make sur the friendship request exist
-            int size = dbContext.relationshipRequest.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
-            if (size >= 1)
+            RelationshipRequestDbModel relationReq = null;
+            try
+            {
+                relationReq = dbContext.relationshipRequest.Where(rr => rr.followerID == followerID && rr.followedID == followedID).First();
+            }
+            catch
+            {
+                return false;
+            }
+            
+            if (relationReq != null)
             {
                 // Remove relation from request
-                RelationshipRequestDbModel relationReq = new RelationshipRequestDbModel
-                {
-                    followerID = fromUserID,
-                    followedID = toUserID,
-                };
+                
                 dbContext.relationshipRequest.Remove(relationReq);
                 dbContext.SaveChanges();
             }
@@ -100,19 +107,21 @@ namespace MultiverseServer.DatabaseService
             return true;
         }
 
-        public static bool DeleteFriendship(MultiverseDbContext dbContext, int fromUserID, int toUserID)
+        public static bool DeleteFriendship(MultiverseDbContext dbContext, int followerID, int followedID)
         {
-            // Make sur the friendship exist
-            int size = dbContext.relationship.Where(r => r.followerID == fromUserID && r.followedID == toUserID).Count();
-            if (size >= 1)
+            RelationshipDbModel dbModel = null;
+            try
             {
-                // Remove relation from request
-                RelationshipDbModel relation = new RelationshipDbModel
-                {
-                    followerID = fromUserID,
-                    followedID = toUserID,
-                };
-                dbContext.relationship.Remove(relation);
+                dbModel = dbContext.relationship.Where(r => r.followerID == followerID && r.followedID == followedID).First();
+            }
+            catch
+            {
+                return false;
+            }
+
+            if(dbModel != null)
+            {
+                dbContext.relationship.Remove(dbModel);
                 dbContext.SaveChanges();
             }
             else
@@ -133,12 +142,14 @@ namespace MultiverseServer.DatabaseService
                                                                       {
                                                                           u.userID,
                                                                           u.firstname,
-                                                                          u.lastname
+                                                                          u.lastname,
+                                                                          u.lastLocation,
                                                                       }).Select(u => new UserDbModel
                                                                       {
                                                                           userID = u.userID,
                                                                           firstname = u.firstname,
-                                                                          lastname = u.lastname
+                                                                          lastname = u.lastname,
+                                                                          lastLocation = u.lastLocation,
                                                                       }).Skip(offset).Take(count).ToList();
 
             return userList;
@@ -155,12 +166,14 @@ namespace MultiverseServer.DatabaseService
                                                                       {
                                                                           u.userID,
                                                                           u.firstname,
-                                                                          u.lastname
+                                                                          u.lastname,
+                                                                          u.lastLocation,
                                                                       }).Select(u => new UserDbModel
                                                                       {
                                                                           userID = u.userID,
                                                                           firstname = u.firstname,
-                                                                          lastname = u.lastname
+                                                                          lastname = u.lastname,
+                                                                          lastLocation = u.lastLocation,
                                                                       }).Skip(offset).Take(count).ToList();
 
             return userList;
@@ -177,12 +190,14 @@ namespace MultiverseServer.DatabaseService
                                                                       {
                                                                           u.userID,
                                                                           u.firstname,
-                                                                          u.lastname
+                                                                          u.lastname,
+                                                                          u.lastLocation
                                                                       }).Select(u => new UserDbModel
                                                                       {
                                                                           userID = u.userID,
                                                                           firstname = u.firstname,
-                                                                          lastname = u.lastname
+                                                                          lastname = u.lastname,
+                                                                          lastLocation = u.lastLocation,
                                                                       }).Skip(offset).Take(count).ToList();
 
             return userList;
@@ -199,12 +214,14 @@ namespace MultiverseServer.DatabaseService
                                                                       {
                                                                           u.userID,
                                                                           u.firstname,
-                                                                          u.lastname
+                                                                          u.lastname,
+                                                                          u.lastLocation
                                                                       }).Select(u => new UserDbModel
                                                                       {
                                                                           userID = u.userID,
                                                                           firstname = u.firstname,
-                                                                          lastname = u.lastname
+                                                                          lastname = u.lastname,
+                                                                          lastLocation = u.lastLocation,
                                                                       }).Skip(offset).Take(count).ToList();
 
             return userList;

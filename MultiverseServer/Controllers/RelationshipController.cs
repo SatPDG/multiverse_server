@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Request;
 using MultiverseServer.ApiModel.Response.User;
+using MultiverseServer.ApiServices;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServer.DatabaseService;
@@ -35,216 +36,146 @@ namespace MultiverseServer.Controllers
         [HttpPost("follower")]
         public IActionResult GetFollowerList([FromBody] ListRequestModel request)
         {
-            // Verify the list access
-            if (!ListAccessValidator.NormalizeListAccess(request))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS));
-            }
-
             // Get the user id.
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Get the list from the db
-            IList<UserDbModel> userList = RelationshipDbService.GetFollowerOfUser(DbContext, userID, request.offset, request.count);
-            int totalSize = RelationshipDbService.GetFollowerOfUserCount(DbContext, userID);
+            ApiResponse response = RelationshipApiService.GetFollowerList(DbContext, userID, request);
+            Response.StatusCode = response.code;
 
-            // Convert to api model
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, request.count, request.offset, totalSize);
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
         [HttpPost("followed")]
         public IActionResult GetFollowedList([FromBody] ListRequestModel request)
         {
-            // Verify the list access
-            if (!ListAccessValidator.NormalizeListAccess(request))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS));
-            }
-
             // Get the user id.
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Get the list from the db
-            IList<UserDbModel> userList = RelationshipDbService.GetFollowedOfUser(DbContext, userID, request.offset, request.count);
-            int totalSize = RelationshipDbService.GetFollowedOfUserCount(DbContext, userID);
+            ApiResponse response = RelationshipApiService.GetFollowedList(DbContext, userID, request);
+            Response.StatusCode = response.code;
 
-            // Convert to api model
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, request.count, request.offset, totalSize);
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
-        [HttpDelete("follower/{id}")]
-        public IActionResult DeteleFollowerUser(int id)
+        [HttpDelete("follower/{followedID}")]
+        public IActionResult DeteleFollowerUser(int followedID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Delete the relationship
-            bool isDone = RelationshipDbService.DeleteFriendship(DbContext, id, userID);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.DeleteFollower(DbContext, followedID, userID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
-        [HttpDelete("followed/{id}")]
-        public IActionResult DeleteFollowedUser(int id)
+        [HttpDelete("followed/{followerID}")]
+        public IActionResult DeleteFollowedUser(int followerID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Delete the relationship
-            bool isDone = RelationshipDbService.DeleteFriendship(DbContext, userID, id);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.DeleteFollowed(DbContext, userID, followerID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
         [HttpPost("follower/request")]
         public IActionResult GetFollowerRequestList([FromBody] ListRequestModel request)
         {
-            // Verify the list access
-            if (!ListAccessValidator.NormalizeListAccess(request))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS));
-            }
-
             // Get the user id.
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Get the list from the db
-            IList<UserDbModel> userList = RelationshipDbService.GetRequestFollowerOfUser(DbContext, userID, request.offset, request.count);
-            int totalSize = RelationshipDbService.GetRequestFollowerOfUserCount(DbContext, userID);
+            ApiResponse response = RelationshipApiService.GetFollowerRequestList(DbContext, userID, request);
+            Response.StatusCode = response.code;
 
-            // Convert to api model
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, request.count, request.offset, totalSize);
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
         [HttpPost("followed/request")]
         public IActionResult GetFollowedRequestList([FromBody] ListRequestModel request)
         {
-            // Verify the list access
-            if (!ListAccessValidator.NormalizeListAccess(request))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS));
-            }
-
             // Get the user id.
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Get the list from the db
-            IList<UserDbModel> userList = RelationshipDbService.GetRequestFollowedOfUser(DbContext, userID, request.offset, request.count);
-            int totalSize = RelationshipDbService.GetRequestFollowedOfUserCount(DbContext, userID);
+            ApiResponse response = RelationshipApiService.GetFollowedRequestList(DbContext, userID, request);
+            Response.StatusCode = response.code;
 
-            // Convert to api model
-            UserListResponseModel apiModel = UserListResponseModel.ToApiModel(userList, request.count, request.offset, totalSize);
-            return new JsonResult(apiModel);
+            return new JsonResult(response.obj);
         }
 
         /// <summary>
         /// I accept id has a follower 
         /// </summary>
         [Authorize]
-        [HttpPost("follower/request/{id}")]
-        public IActionResult AcceptFollowerRequest(int id)
+        [HttpPost("follower/request/{followedID}")]
+        public IActionResult AcceptFollowerRequest(int followedID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Accept the relationship
-            bool isDone = RelationshipDbService.AcceptFriendshipRequest(DbContext, id, userID);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.AcceptFollowerRequest(DbContext, userID, followedID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         // I refuse to be follow by id
         [Authorize]
-        [HttpDelete("follower/request/{id}")]
-        public IActionResult DeleteFollowerRequest(int id)
+        [HttpDelete("follower/request/{followedID}")]
+        public IActionResult DeleteFollowerRequest(int followedID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Delete the relationship request
-            bool isDone = RelationshipDbService.DeleteFriendshipRequest(DbContext, id, userID);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, followedID, userID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         // I want to followed id.
         [Authorize]
-        [HttpPost("followed/request/{id}")]
-        public IActionResult SendFollowedRequest(int id)
+        [HttpPost("followed/request/{followedID}")]
+        public IActionResult SendFollowerRequest(int followedID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Delete the relationship request
-            bool isDone = RelationshipDbService.SendFriendshipRequest(DbContext, userID, id);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.SendRequest(DbContext, userID, followedID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         // I delete my request to follow id
         [Authorize]
-        [HttpDelete("followed/request/{id}")]
-        public IActionResult DeleteFollowedRequest(int id)
+        [HttpDelete("followed/request/{followerID}")]
+        public IActionResult DeleteFollowedRequest(int followerID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            // Delete the relationship request
-            bool isDone = RelationshipDbService.DeleteFriendshipRequest(DbContext, userID, id);
-            if (!isDone)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new JsonResult(new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER));
-            }
+            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, userID, followerID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
     }
 }
