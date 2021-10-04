@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
@@ -46,6 +47,43 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
 
             size = DbContext.message.Where(cu => cu.conversationID == 1).Count();
             Assert.Equal(0, size);
+        }
+
+        [Fact]
+        public void DeleteConversation_DeleteConv_TheNotificationsAreDeleted()
+        {
+            ConversationDbContext.SetUp(DbContext);
+            List<NotificationDbModel> notifList = new List<NotificationDbModel>();
+            for(int i = 1; i < 4; i++)
+            {
+                notifList.Add(new NotificationDbModel() 
+                { 
+                    date = DateTime.Now,
+                    notificationType = (byte)NotificationType.NEW_CONVERSATION,
+                    targetUserID = i,
+                    objectID = 1,
+                });
+            }
+            notifList.Add(new NotificationDbModel()
+            {
+                date = DateTime.Now,
+                notificationType = (byte)NotificationType.NEW_CONVERSATION,
+                targetUserID = 1,
+                objectID = 2,
+            });
+            DbContext.notification.AddRange(notifList);
+            DbContext.SaveChanges();
+
+            ApiResponse response = ConversationApiService.DeleteConversation(DbContext, 1, 1);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Where(n => n.notificationType == (byte)NotificationType.NEW_CONVERSATION && n.objectID == 1).Count();
+            Assert.Equal(0, size);
+
+            size = DbContext.notification.Count();
+            Assert.Equal(1, size);
         }
 
         [Fact]

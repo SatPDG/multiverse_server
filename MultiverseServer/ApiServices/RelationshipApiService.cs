@@ -1,9 +1,11 @@
 ﻿using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Request;
 using MultiverseServer.ApiModel.Response.User;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServer.DatabaseService;
+using MultiverseServer.DbServices;
 using MultiverseServer.Security.ListAccess;
 using System;
 using System.Collections.Generic;
@@ -112,7 +114,7 @@ namespace MultiverseServer.ApiServices
             return response;
         }
 
-        public static ApiResponse AcceptFollowerRequest(MultiverseDbContext dbContext, int followerID, int followedID)
+        public static ApiResponse AcceptFollowedRequest(MultiverseDbContext dbContext, int followerID, int followedID)
         {
             ApiResponse response = new ApiResponse();
 
@@ -122,7 +124,11 @@ namespace MultiverseServer.ApiServices
             {
                 response.code = (int)HttpStatusCode.Forbidden;
                 response.obj = new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION);
+                return response;
             }
+
+            // Send the notification
+            NotificationDbService.AddNotification(dbContext, followedID, (byte)NotificationType.NEW_FOLLOWED, followerID);
 
             return response;
         }
@@ -140,6 +146,9 @@ namespace MultiverseServer.ApiServices
                 return response;
             }
 
+            // Delete the notification
+            NotificationDbService.DeleteNotification(dbContext, followedID, (byte)NotificationType.NEW_FOLLOWER_REQ, followerID);
+
             return response;
         }
 
@@ -151,10 +160,13 @@ namespace MultiverseServer.ApiServices
             bool isDone = RelationshipDbService.DeleteFriendshipRequest(dbContext, followerID, followedID);
             if (!isDone)
             {
-                response.code = (int)HttpStatusCode.BadRequest;
-                response.obj = new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER);
+                response.code = (int)HttpStatusCode.Forbidden;
+                response.obj = new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION);
                 return response;
             }
+
+            // Delete the notification
+            NotificationDbService.DeleteNotification(dbContext, followerID, (byte)NotificationType.NEW_FOLLOWER_REQ, followedID);
 
             return response;
         }
@@ -203,6 +215,9 @@ namespace MultiverseServer.ApiServices
                 response.obj = new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER);
                 return response;
             }
+
+            // Send the notification
+            NotificationDbService.AddNotification(dbContext, followedID, (byte)NotificationType.NEW_FOLLOWER_REQ, followerID);
 
             return response;
         }

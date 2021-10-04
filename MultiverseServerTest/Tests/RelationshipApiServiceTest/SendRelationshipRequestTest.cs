@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
@@ -42,6 +43,26 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
             Assert.NotNull(dbModel);
             Assert.Equal(1, dbModel.followerID);
             Assert.Equal(21, dbModel.followedID);
+        }
+
+        [Fact]
+        public void SendRequest_SendRequest_NotificationSent()
+        {
+            UserWithALotOfRelationshipDbContext.SetUp(DbContext);
+
+            ApiResponse response = RelationshipApiService.SendRequest(DbContext, 1, 21);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
+            Assert.Equal(1, size);
+
+            NotificationDbModel dbmodel = DbContext.notification.Where(n => n.objectID == 1 && n.targetUserID == 21).First();
+            Assert.Equal(21, dbmodel.targetUserID);
+            Assert.Equal(1, dbmodel.objectID);
+            Assert.NotNull(dbmodel.date);
+            Assert.Equal((byte)NotificationType.NEW_FOLLOWER_REQ, dbmodel.notificationType);
         }
 
         [Fact]

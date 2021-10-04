@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServerTest.Database;
 using MultiverseServerTest.TestSetUp;
@@ -38,6 +39,27 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
             Assert.Equal(typeof(EmptyResult), response.obj.GetType());
 
             int size = DbContext.relationshipRequest.Where(rr => rr.followerID == 1 && rr.followedID == 13).Count();
+            Assert.Equal(0, size);
+        }
+
+        [Fact]
+        public void DeleteFollowerRequest_DeleteRequest_DeleteNotification()
+        {
+            UserWithALotOfRelationshipDbContext.SetUp(DbContext);
+            DbContext.notification.Add(new NotificationDbModel() 
+            { 
+                notificationType = (byte)NotificationType.NEW_FOLLOWER_REQ,
+                date = DateTime.Now,
+                targetUserID = 13,
+                objectID = 1,
+            });
+
+            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, 1, 13);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
             Assert.Equal(0, size);
         }
 
@@ -82,11 +104,32 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
         }
 
         [Fact]
+        public void DeleteFollowedRequest_DeleteRequest_DeleteNotification()
+        {
+            UserWithALotOfRelationshipDbContext.SetUp(DbContext);
+            DbContext.notification.Add(new NotificationDbModel()
+            {
+                notificationType = (byte)NotificationType.NEW_FOLLOWER_REQ,
+                date = DateTime.Now,
+                targetUserID = 1,
+                objectID = 13,
+            });
+
+            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, 1, 13);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
+            Assert.Equal(0, size);
+        }
+
+        [Fact]
         public void DeleteFollowedRequest_RequestNotExists_Failed()
         {
             UserWithALotOfRelationshipDbContext.SetUp(DbContext);
 
-            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, 2, 1);
+            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, 2, 1);
 
             Assert.Equal((int)HttpStatusCode.Forbidden, response.code);
             Assert.Equal(typeof(ErrorApiModel), response.obj.GetType());
@@ -99,7 +142,7 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
         {
             UserWithALotOfRelationshipDbContext.SetUp(DbContext);
 
-            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, 100, 1);
+            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, 100, 1);
 
             Assert.Equal((int)HttpStatusCode.Forbidden, response.code);
             Assert.Equal(typeof(ErrorApiModel), response.obj.GetType());

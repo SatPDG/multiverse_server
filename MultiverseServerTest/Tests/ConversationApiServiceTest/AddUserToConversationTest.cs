@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Request.Util;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
@@ -50,6 +51,33 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             {
                 Assert.Equal(i+1, userList[i].userID);
             }
+        }
+
+        [Fact]
+        public void AddUserToConversation_AddUser_TheNotificationIsSend()
+        {
+            ConversationDbContext.SetUp(DbContext);
+
+            IDListRequestModel request = new IDListRequestModel()
+            {
+                idList = new List<int>() { 4, 5 },
+            };
+
+            ApiResponse response = ConversationApiService.AddUsersToConversation(DbContext, 1, 1, request);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
+            Assert.Equal(2, size);
+
+            List<NotificationDbModel> notifList = DbContext.notification.Where(n => n.objectID == 1).OrderBy(n => n.targetUserID).ToList();
+            Assert.Equal(4, notifList[0].targetUserID);
+            Assert.Equal((byte)NotificationType.ADDED_IN_CONVERSATION, notifList[0].notificationType);
+            Assert.NotNull(notifList[0].date);
+            Assert.Equal(5, notifList[1].targetUserID);
+            Assert.Equal((byte)NotificationType.ADDED_IN_CONVERSATION, notifList[1].notificationType);
+            Assert.NotNull(notifList[1].date);
         }
 
         [Fact]

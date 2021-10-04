@@ -5,9 +5,11 @@ using MultiverseServer.ApiModel.Request.Conversation;
 using MultiverseServer.ApiModel.Request.Util;
 using MultiverseServer.ApiModel.Response;
 using MultiverseServer.ApiModel.Response.Conversation;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServer.DatabaseService;
+using MultiverseServer.DbServices;
 using MultiverseServer.Security.Json;
 using MultiverseServer.Security.ListAccess;
 using System;
@@ -121,6 +123,9 @@ namespace MultiverseServer.ApiServices
                 return response;
             }
 
+            // Create the notification for each user in the conversation
+            NotificationDbService.AddNotificationToUsers(dbContext, request.users, (byte)NotificationType.NEW_CONVERSATION, dbModel.conversationID);
+
             ConversationApiModel apiModel = ConversationApiModel.ToApiModel(dbModel);
             response.obj = apiModel;
 
@@ -147,6 +152,9 @@ namespace MultiverseServer.ApiServices
                 response.obj = new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION);
                 return response;
             }
+
+            // Delete the notification if it still exists
+            NotificationDbService.DeleteNotificationForUsers(dbContext, NotificationDbModel.GetConversationNotificationType(), conversationID);
 
             return response;
         }
@@ -220,6 +228,11 @@ namespace MultiverseServer.ApiServices
                 response.obj = new ErrorApiModel((int)ErrorType.JsonNotValid, ErrorMessage.JSON_NOT_VALID_MESSAGE);
                 return response;
             }
+
+            // Update notification or create it if it does not exists for all conversation users
+            IList<int> userList = ConversationDbService.GetConversationUser(dbContext, conversationID);
+            userList.Remove(userID);
+            NotificationDbService.UpdateNotifications(dbContext, userList, (byte)NotificationType.NEW_MESSAGE, conversationID);
 
             response.obj = apiModel;
             return response;
@@ -339,6 +352,9 @@ namespace MultiverseServer.ApiServices
                 return response;
             }
 
+            // Create the notification for each new user in the conversation
+            NotificationDbService.AddNotificationToUsers(dbContext, request.idList, (byte)NotificationType.ADDED_IN_CONVERSATION, conversationID);
+
             return response;
         }
 
@@ -371,6 +387,9 @@ namespace MultiverseServer.ApiServices
                 response.obj = new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION);
                 return response;
             }
+
+            // Delete the notification for each remove user in the conversation
+            NotificationDbService.DeleteNotificationForUsers(dbContext, request.idList, NotificationDbModel.GetConversationNotificationType(), conversationID);
 
             return response;
         }

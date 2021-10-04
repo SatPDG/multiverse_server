@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServerTest.Database;
 using MultiverseServerTest.TestSetUp;
@@ -32,7 +33,7 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
         {
             UserWithALotOfRelationshipDbContext.SetUp(DbContext);
 
-            ApiResponse response = RelationshipApiService.AcceptFollowerRequest(DbContext, 1, 13);
+            ApiResponse response = RelationshipApiService.AcceptFollowedRequest(DbContext, 1, 13);
 
             Assert.Equal(200, response.code);
             Assert.Equal(typeof(EmptyResult), response.obj.GetType());
@@ -45,11 +46,32 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
         }
 
         [Fact]
-        public void AcceptFollowerRequest_RelationDoesNotExist_Failed()
+        public void AcceptFollowedRequest_Accept_NotifSent()
         {
             UserWithALotOfRelationshipDbContext.SetUp(DbContext);
 
-            ApiResponse response = RelationshipApiService.AcceptFollowerRequest(DbContext, 1, 2);
+            ApiResponse response = RelationshipApiService.AcceptFollowedRequest(DbContext, 1, 13);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
+            Assert.Equal(1, size);
+
+            NotificationDbModel dbModel = DbContext.notification.Where(n => n.objectID == 1 && n.targetUserID == 13).First();
+            Assert.NotNull(dbModel);
+            Assert.Equal(1, dbModel.objectID);
+            Assert.Equal(13, dbModel.targetUserID);
+            Assert.Equal((byte)NotificationType.NEW_FOLLOWED, dbModel.notificationType);
+            Assert.NotNull(dbModel.date);
+        }
+
+        [Fact]
+        public void AcceptFollowedRequest_RelationDoesNotExist_Failed()
+        {
+            UserWithALotOfRelationshipDbContext.SetUp(DbContext);
+
+            ApiResponse response = RelationshipApiService.AcceptFollowedRequest(DbContext, 1, 2);
 
             Assert.Equal((int)HttpStatusCode.Forbidden, response.code);
             Assert.Equal(typeof(ErrorApiModel), response.obj.GetType());
@@ -58,11 +80,11 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
         }
 
         [Fact]
-        public void AcceptFollowerRequest_UserNotExists_Failed()
+        public void AcceptFollowedRequest_UserNotExists_Failed()
         {
             UserWithALotOfRelationshipDbContext.SetUp(DbContext);
 
-            ApiResponse response = RelationshipApiService.AcceptFollowerRequest(DbContext, 1, 100);
+            ApiResponse response = RelationshipApiService.AcceptFollowedRequest(DbContext, 1, 100);
 
             Assert.Equal((int)HttpStatusCode.Forbidden, response.code);
             Assert.Equal(typeof(ErrorApiModel), response.obj.GetType());

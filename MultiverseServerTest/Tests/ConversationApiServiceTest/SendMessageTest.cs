@@ -3,6 +3,7 @@ using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Model;
 using MultiverseServer.ApiModel.Request.Conversation;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
@@ -56,6 +57,70 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             Assert.Equal(request.message, dbModel.message);
             Assert.Equal(model.publishedTime, dbModel.publishedTime.ToString());
             Assert.Equal(1, dbModel.authorID);
+        }
+
+        [Fact]
+        public void SendMessage_SendTextMessage_NotificationSent()
+        {
+            ConversationDbContext.SetUp(DbContext);
+
+            SendMessageRequestModel request = new SendMessageRequestModel()
+            {
+                message = "Mon message!!",
+            };
+
+            ApiResponse response = ConversationApiService.SendMessage(DbContext, 1, 1, request);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(MessageApiModel), response.obj.GetType());
+
+            List<NotificationDbModel> notifList = DbContext.notification.Where(n => n.notificationType == (byte)NotificationType.NEW_MESSAGE && n.objectID == 1).OrderBy(n => n.targetUserID).ToList();
+            Assert.Equal(2, notifList.Count);
+            Assert.Equal(2, notifList[0].targetUserID);
+            Assert.Equal((byte)NotificationType.NEW_MESSAGE, notifList[0].notificationType);
+            Assert.NotNull(notifList[0].date);
+            Assert.Equal(1, notifList[0].objectID);
+            Assert.Equal(3, notifList[1].targetUserID);
+            Assert.Equal((byte)NotificationType.NEW_MESSAGE, notifList[1].notificationType);
+            Assert.NotNull(notifList[1].date);
+            Assert.Equal(1, notifList[1].objectID);
+        }
+
+        [Fact]
+        public void SendMessage_SendTextMessage_NotificationDateAreUpdated()
+        {
+            ConversationDbContext.SetUp(DbContext);
+
+            SendMessageRequestModel request = new SendMessageRequestModel()
+            {
+                message = "Mon message!!",
+            };
+            DateTime date = DateTime.Now.AddMinutes(-15);
+            NotificationDbModel notifModel = new NotificationDbModel()
+            {
+                date = date,
+                notificationType = (byte)NotificationType.NEW_MESSAGE,
+                targetUserID = 2,
+                objectID = 1,
+            };
+            DbContext.notification.Add(notifModel);
+            DbContext.SaveChanges();
+
+            ApiResponse response = ConversationApiService.SendMessage(DbContext, 1, 1, request);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(MessageApiModel), response.obj.GetType());
+
+            List<NotificationDbModel> notifList = DbContext.notification.Where(n => n.notificationType == (byte)NotificationType.NEW_MESSAGE && n.objectID == 1).OrderBy(n => n.targetUserID).ToList();
+            Assert.Equal(2, notifList.Count);
+            Assert.Equal(2, notifList[0].targetUserID);
+            Assert.Equal((byte)NotificationType.NEW_MESSAGE, notifList[0].notificationType);
+            Assert.NotEqual(date, notifList[0].date);
+            Assert.Equal(1, notifList[0].objectID);
+            Assert.Equal(3, notifList[1].targetUserID);
+            Assert.Equal((byte)NotificationType.NEW_MESSAGE, notifList[1].notificationType);
+            Assert.NotNull(notifList[1].date);
+            Assert.Equal(1, notifList[1].objectID);
         }
 
         [Fact]

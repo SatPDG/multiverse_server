@@ -29,6 +29,7 @@ namespace MultiverseServerTest.Database
                     "TRUNCATE TABLE conversation;" +
                     "TRUNCATE TABLE conversationUser;" +
                     "TRUNCATE TABLE message;" +
+                    "TRUNCATE TABLE notification;" +
                     "SET FOREIGN_KEY_CHECKS = 1");
         }
 

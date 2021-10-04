@@ -22,6 +22,7 @@ namespace MultiverseServer.DatabaseContext
         public DbSet<ConversationDbModel> conversation { get; set; }
         public DbSet<ConversationUserDbModel> conversationUser { get; set; }
         public DbSet<MessageDbModel> message { get; set; }
+        public DbSet<NotificationDbModel> notification { get; set; }
 
         public MultiverseDbContext(DbContextOptions<MultiverseDbContext> options) : base(options)
         {
@@ -32,18 +33,6 @@ namespace MultiverseServer.DatabaseContext
         {
 
         }
-
-        // "CodeFirstDatabaseSchema" is a convention mandatory schema name
-        // "LatLongDistanceCalc" is the name of your function
-
-        [DbFunction("CodeFirstDatabaseSchema", "LatLongDistanceCalc")]
-        public static int LatLongDistanceCalc(int fromLat, int fromLong,
-                                                           int toLat, int toLong)
-        {
-            // no need to provide an implementation
-            throw new NotSupportedException();
-        }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -100,7 +89,7 @@ namespace MultiverseServer.DatabaseContext
                 modelBuilder.Entity<ConversationDbModel>().Property(c => c.conversationID).HasColumnType("int").UseMySqlIdentityColumn().IsRequired();
                 modelBuilder.Entity<ConversationDbModel>().Property(c => c.name).HasColumnType("nvarchar(20)").HasDefaultValue("conversation");
                 modelBuilder.Entity<ConversationDbModel>().Property(c => c.lastUpdate).HasColumnType("datetime");
-
+                
                 modelBuilder.Entity<ConversationUserDbModel>().ToTable("conversationUser");
                 modelBuilder.Entity<ConversationUserDbModel>().HasKey(cu => cu.conversationUserID);
                 modelBuilder.Entity<ConversationUserDbModel>().Property(cu => cu.conversationUserID).HasColumnType("int").UseMySqlIdentityColumn().IsRequired();
@@ -121,6 +110,19 @@ namespace MultiverseServer.DatabaseContext
                 modelBuilder.Entity<MessageDbModel>().HasOne<ConversationDbModel>().WithMany().HasPrincipalKey(c => c.conversationID).HasForeignKey(m => m.conversationID).OnDelete(DeleteBehavior.Cascade).HasConstraintName("fk_message_conversation");
                 modelBuilder.Entity<MessageDbModel>().HasOne<UserDbModel>().WithMany().HasPrincipalKey(u => u.userID).HasForeignKey(m => m.conversationID).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("fk_message_user");
                 modelBuilder.Entity<MessageDbModel>().HasIndex(m => m.conversationID).HasDatabaseName("message_idx");
+            }
+
+            // Notification table
+            {
+                modelBuilder.Entity<NotificationDbModel>().ToTable("notification");
+                modelBuilder.Entity<NotificationDbModel>().HasKey(n => n.notificationID).HasName("notificationID");
+                modelBuilder.Entity<NotificationDbModel>().Property(n => n.notificationID).HasColumnType("int").UseMySqlIdentityColumn().IsRequired();
+                modelBuilder.Entity<NotificationDbModel>().Property(n => n.date).HasColumnType("datetime").IsRequired();
+                modelBuilder.Entity<NotificationDbModel>().Property(n => n.targetUserID).HasColumnType("int").IsRequired();
+                modelBuilder.Entity<NotificationDbModel>().Property(n => n.notificationType).HasColumnType("tinyint").IsRequired();
+                modelBuilder.Entity<NotificationDbModel>().Property(n => n.objectID).HasColumnType("int").IsRequired();
+                modelBuilder.Entity<NotificationDbModel>().HasIndex(n => n.targetUserID).HasDatabaseName("notification_idx");
+                //modelBuilder.Entity<NotificationDbModel>().HasDiscriminator(n => n.notificationType).HasValue<UserDbModel>(0).HasValue<ConversationDbModel>(1);
             }
 
             // Custom functions

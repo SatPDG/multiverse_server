@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
 using MultiverseServer.ApiModel.Request.Util;
 using MultiverseServer.ApiServices;
+using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
@@ -47,6 +48,49 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             List<ConversationUserDbModel> userList = DbContext.conversationUser.Where(cu => cu.conversationID == 1).OrderBy(cu => cu.userID).ToList();
             Assert.Single(userList);
             Assert.Equal(1, userList[0].userID);
+        }
+
+        [Fact]
+        public void RemoveUserFromConversation_RemoveUser_NotificationsAreDeleted()
+        {
+            ConversationDbContext.SetUp(DbContext);
+
+            IDListRequestModel request = new IDListRequestModel()
+            {
+                idList = new List<int>() { 2, 3 },
+            };
+            List<NotificationDbModel> list = new List<NotificationDbModel>();
+            list.Add(new NotificationDbModel()
+            {
+                notificationType = (byte)NotificationType.NEW_CONVERSATION,
+                date = DateTime.Now,
+                targetUserID = 2,
+                objectID = 1,
+            });
+            list.Add(new NotificationDbModel()
+            {
+                notificationType = (byte)NotificationType.ADDED_IN_CONVERSATION,
+                date = DateTime.Now,
+                targetUserID = 3,
+                objectID = 1,
+            });
+            list.Add(new NotificationDbModel()
+            {
+                notificationType = (byte)NotificationType.NEW_FOLLOWED,
+                date = DateTime.Now,
+                targetUserID = 2,
+                objectID = 1,
+            });
+            DbContext.notification.AddRange(list);
+            DbContext.SaveChanges();
+
+            ApiResponse response = ConversationApiService.RemoveUsersFromConversation(DbContext, 1, 1, request);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+
+            int size = DbContext.notification.Count();
+            Assert.Equal(1, size);
         }
 
         [Fact]

@@ -121,13 +121,13 @@ namespace MultiverseServer.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("follower/request/{followedID}")]
-        public IActionResult AcceptFollowerRequest(int followedID)
+        public IActionResult AcceptFollowedRequest(int followedID)
         {
             // Get the user id
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            ApiResponse response = RelationshipApiService.AcceptFollowerRequest(DbContext, userID, followedID);
+            ApiResponse response = RelationshipApiService.AcceptFollowedRequest(DbContext, followedID, userID);
             Response.StatusCode = response.code;
 
             return new JsonResult(response.obj);
@@ -142,7 +142,7 @@ namespace MultiverseServer.Controllers
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, followedID, userID);
+            ApiResponse response = RelationshipApiService.DeleteFollowerRequest(DbContext, userID, followedID);
             Response.StatusCode = response.code;
 
             return new JsonResult(response.obj);
@@ -172,7 +172,7 @@ namespace MultiverseServer.Controllers
             string token = HttpRequestUtil.GetTokenFromRequest(Request);
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
-            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, userID, followerID);
+            ApiResponse response = RelationshipApiService.DeleteFollowedRequest(DbContext, followerID, userID);
             Response.StatusCode = response.code;
 
             return new JsonResult(response.obj);
