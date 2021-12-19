@@ -52,7 +52,7 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
 
             ConversationDbModel dbModel = DbContext.conversation.Find(1);
             Assert.Equal("myConv", dbModel.name);
-            Assert.Equal(model.lastUpdate, dbModel.lastUpdate.ToString());
+            Assert.Equal(model.lastUpdate, dbModel.lastUpdate.ToString("yyyy-MM-dd HH:mm:ss"));
 
             IList<ConversationUserDbModel> userList = DbContext.conversationUser.Where(cu => cu.conversationID == dbModel.conversationID).OrderBy(cu => cu.userID).ToList();
             Assert.Equal(4, userList.Count);

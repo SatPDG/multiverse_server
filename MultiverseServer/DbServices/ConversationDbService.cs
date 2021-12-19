@@ -229,7 +229,7 @@ namespace MultiverseServer.DatabaseService
 
         public static bool IsUserInConversation(MultiverseDbContext dbContext, int userID, int conversationID)
         {
-            int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && cu.conversationUserID == userID).Count();
+            int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && cu.userID == userID).Count();
             return size == 1;
         }
 
@@ -303,16 +303,10 @@ namespace MultiverseServer.DatabaseService
             return true; 
         }
 
-        public static IList<MessageDbModel> GetMessageList(MultiverseDbContext dbContext, int userID, int conversationID, int offset, int count)
+        public static IList<MessageDbModel> GetMessageList(MultiverseDbContext dbContext, int conversationID, int offset, int count)
         {
             IList<MessageDbModel> list = null;
-            
-            // Make sure the user is in the conversation
-            int size = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID && cu.userID == userID).Count();
-            if(size >= 1)
-            {
-                list = dbContext.message.Where(m => m.conversationID == conversationID).OrderBy(m => m.publishedTime).Skip(offset).Take(count).ToList();
-            }
+            list = dbContext.message.Where(m => m.conversationID == conversationID).OrderBy(m => m.publishedTime).Skip(offset).Take(count).ToList();
 
             return list;
         }
@@ -331,6 +325,11 @@ namespace MultiverseServer.DatabaseService
                 return false;
             }
             return true;
+        }
+
+        public static int GetNumberOfMessage(MultiverseDbContext dbContext, int conversationID)
+        {
+            return dbContext.message.Where(m => m.conversationID == conversationID).Count();
         }
     }
 }

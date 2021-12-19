@@ -322,6 +322,39 @@ namespace MultiverseServer.ApiServices
             return response;
         }
 
+        public static ApiResponse GetMessageList(MultiverseDbContext dbContext, int userID, int conversationID, ListRequestModel request)
+        {
+            ApiResponse response = new ApiResponse();
+
+            // Verify the list access
+            if (!ListAccessValidator.NormalizeListAccess(request))
+            {
+                response.code = (int)HttpStatusCode.BadRequest;
+                response.obj = new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS);
+                return response;
+            }
+
+            // Make sure the user is in the conversation
+            bool isInConv = ConversationDbService.IsUserInConversation(dbContext, userID, conversationID);
+            if (!isInConv)
+            {
+                response.code = (int)HttpStatusCode.Forbidden;
+                response.obj = new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER);
+                return response;
+            }
+
+            // Get the message list
+            IList<MessageDbModel> messageList = ConversationDbService.GetMessageList(dbContext, conversationID, request.offset, request.count);
+
+            int totalNumber = ConversationDbService.GetNumberOfMessage(dbContext, conversationID);
+
+            // Create the api obj
+            MessageListResponseModel apiModel = MessageListResponseModel.ToApiModel(messageList, request.count, request.offset, totalNumber);
+            response.obj = apiModel;
+
+            return response;
+        }
+
         public static ApiResponse AddUsersToConversation(MultiverseDbContext dbContext, int userID, int conversationID, IDListRequestModel request)
         {
             ApiResponse response = new ApiResponse();

@@ -68,5 +68,16 @@ namespace MultiverseServer.Controllers
             Response.StatusCode = response.code;
             return new JsonResult(response.obj);
         }
+
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            UserApiModel obj = new UserApiModel();
+            obj.firstname = "Firstname";
+            obj.lastname = "Lastname";
+            obj.userID = 123;
+            obj.lastLocation = new LocationApiModel(123, 456);
+            return new JsonResult(obj);
+        }
     }
 }

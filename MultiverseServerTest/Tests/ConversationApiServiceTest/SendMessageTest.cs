@@ -55,7 +55,7 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             Assert.NotNull(dbModel);
             Assert.Equal(0, dbModel.messageType);
             Assert.Equal(request.message, dbModel.message);
-            Assert.Equal(model.publishedTime, dbModel.publishedTime.ToString());
+            Assert.Equal(model.publishedTime, dbModel.publishedTime.ToString("yyyy-MM-dd HH:mm:ss"));
             Assert.Equal(1, dbModel.authorID);
         }
 

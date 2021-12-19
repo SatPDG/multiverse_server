@@ -23,6 +23,7 @@ namespace MultiverseServer.DatabaseContext
         public DbSet<ConversationUserDbModel> conversationUser { get; set; }
         public DbSet<MessageDbModel> message { get; set; }
         public DbSet<NotificationDbModel> notification { get; set; }
+        public DbSet<NewDbModel> news { get; set; }
 
         public MultiverseDbContext(DbContextOptions<MultiverseDbContext> options) : base(options)
         {
@@ -123,6 +124,18 @@ namespace MultiverseServer.DatabaseContext
                 modelBuilder.Entity<NotificationDbModel>().Property(n => n.objectID).HasColumnType("int").IsRequired();
                 modelBuilder.Entity<NotificationDbModel>().HasIndex(n => n.targetUserID).HasDatabaseName("notification_idx");
                 //modelBuilder.Entity<NotificationDbModel>().HasDiscriminator(n => n.notificationType).HasValue<UserDbModel>(0).HasValue<ConversationDbModel>(1);
+            }
+
+            // New tables
+            {
+                modelBuilder.Entity<NewDbModel>().ToTable("new");
+                modelBuilder.Entity<NewDbModel>().HasKey(n => n.newID).HasName("newID");
+                modelBuilder.Entity<NewDbModel>().Property(n => n.newID).HasColumnType("int").UseMySqlIdentityColumn().IsRequired();
+                modelBuilder.Entity<NewDbModel>().Property(n => n.authorID).HasColumnType("int").IsRequired();
+                modelBuilder.Entity<NewDbModel>().Property(n => n.date).HasColumnType("datetime").IsRequired();
+                modelBuilder.Entity<NewDbModel>().Property(n => n.broadcastType).HasColumnType("tinyint").IsRequired();
+                modelBuilder.Entity<NewDbModel>().Property(n => n.newType).HasColumnType("tinyint").IsRequired();
+                modelBuilder.Entity<NewDbModel>().Property(n => n.message).HasColumnType("nvarchar(250)");
             }
 
             // Custom functions

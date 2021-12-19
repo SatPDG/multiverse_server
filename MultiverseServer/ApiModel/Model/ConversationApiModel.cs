@@ -27,7 +27,7 @@ namespace MultiverseServer.ApiModel.Model
             ConversationApiModel apiModel = new ConversationApiModel();
             apiModel.conversationID = dbModel.conversationID;
             apiModel.name = dbModel.name;
-            apiModel.lastUpdate = dbModel.lastUpdate.ToString();
+            apiModel.lastUpdate = dbModel.lastUpdate.ToString("yyyy-MM-dd HH:mm:ss");
 
             return apiModel;
         }

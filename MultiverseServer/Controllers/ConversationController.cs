@@ -130,8 +130,9 @@ namespace MultiverseServer.Controllers
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
             ApiResponse response = ConversationApiService.DeleteMessage(DbContext, userID, conversationID, messageID);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
         }
 
         [Authorize]
@@ -143,8 +144,23 @@ namespace MultiverseServer.Controllers
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
             ApiResponse response = ConversationApiService.UpdateMessage(DbContext, userID, conversationID, messageID, request);
+            Response.StatusCode = response.code;
 
-            return new JsonResult(new EmptyResult());
+            return new JsonResult(response.obj);
+        }
+
+        [Authorize]
+        [HttpPost("{conversationID}/messages")]
+        public IActionResult GetMessages(int conversationID, [FromBody] ListRequestModel request)
+        {
+            // Get the user id
+            string token = HttpRequestUtil.GetTokenFromRequest(Request);
+            int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
+
+            ApiResponse response = ConversationApiService.GetMessageList(DbContext, userID, conversationID, request);
+            Response.StatusCode = response.code;
+
+            return new JsonResult(response.obj);
         }
 
         [Authorize]

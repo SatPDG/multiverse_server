@@ -20,7 +20,7 @@ namespace MultiverseServer.ApiModel.Response.Notification
             UserNotificationResponseModel responseModel = new UserNotificationResponseModel()
             {
                 notificationID = dbModel.notificationID,
-                notificationDate = dbModel.notificationDate.ToString(),
+                notificationDate = dbModel.notificationDate.ToString("yyyy-MM-dd HH:mm:ss"),
                 notificationType = dbModel.notificationType,
                 userID = dbModel.userID,
                 userFirstname = dbModel.userFirstname,

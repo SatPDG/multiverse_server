@@ -124,6 +124,7 @@ namespace MultiverseServer.ApiServices
                     // Build the answer
                     LoginResponseModel responseModel = new LoginResponseModel
                     {
+                        userID = userDb.userID,
                         token = token,
                         refreshToken = refreshToken
                     };

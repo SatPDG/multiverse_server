@@ -46,6 +46,7 @@ namespace MultiverseServerTest.Tests.AuthenticationControllerTest
             Assert.Equal(typeof(LoginResponseModel), response.obj.GetType());
             LoginResponseModel model = (LoginResponseModel)response.obj;
             Assert.NotNull(model.token);
+            Assert.Equal(3, model.userID);
             JwtTokenService tokenService = new JwtTokenService(Config);
             Assert.True(tokenService.ValidateJwtTokenWithoutLifetime(model.token));
             Assert.Equal(3, int.Parse(tokenService.GetJwtClaim(model.token, "userID")));

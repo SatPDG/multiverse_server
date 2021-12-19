@@ -7,6 +7,7 @@ namespace MultiverseServer.ApiModel.Response
 {
     public class LoginResponseModel
     {
+        public int userID { get; set; }
         public string token { get; set; }
         public string refreshToken { get; set; }
     }

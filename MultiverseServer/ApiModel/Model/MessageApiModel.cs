@@ -21,7 +21,7 @@ namespace MultiverseServer.ApiModel.Model
             apiModel.messageID = dbModel.messageID;
             apiModel.conversationID = dbModel.conversationID;
             apiModel.authorID = dbModel.authorID;
-            apiModel.publishedTime = dbModel.publishedTime.ToString();
+            apiModel.publishedTime = dbModel.publishedTime.ToString("yyyy-MM-dd HH:mm:ss");
             apiModel.messageType = dbModel.messageType;
             apiModel.message = dbModel.message;
 

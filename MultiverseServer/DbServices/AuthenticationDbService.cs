@@ -31,7 +31,7 @@ namespace MultiverseServer.Services
                 try
                 {
                     authenticationDb.userID = userID;
-                    dbContext.authentication.Attach(authenticationDb);
+                    dbContext.Entry(authentication).State = EntityState.Detached;
                     dbContext.authentication.Update(authenticationDb);
                     dbContext.SaveChanges();
                 }

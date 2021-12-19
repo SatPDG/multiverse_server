@@ -135,7 +135,7 @@ namespace MultiverseServer.Controllers
 
         // I refuse to be follow by id
         [Authorize]
-        [HttpDelete("follower/request/{followedID}")]
+        [HttpDelete("followed/request/{followedID}")]
         public IActionResult DeleteFollowerRequest(int followedID)
         {
             // Get the user id
@@ -165,7 +165,7 @@ namespace MultiverseServer.Controllers
 
         // I delete my request to follow id
         [Authorize]
-        [HttpDelete("followed/request/{followerID}")]
+        [HttpDelete("follower/request/{followerID}")]
         public IActionResult DeleteFollowedRequest(int followerID)
         {
             // Get the user id
