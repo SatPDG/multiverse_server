@@ -29,11 +29,11 @@ namespace MultiverseServerTest.Tests.UserApiServiceTest
         }
 
         [Fact]
-        public void GetUserInfo_GetUser1Info_Pass()
+        public void GetUserInfo_GetUser1InfoFrom2_Pass()
         {
             UserWithRelationDbContext.TestSetUp(DbContext);
 
-            ApiResponse response = UserApiService.GetUserInfo(DbContext, 1);
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, 1, 2);
 
             Assert.Equal(200, response.code);
             Assert.Equal(typeof(UserResponseModel), response.obj.GetType());
@@ -43,14 +43,18 @@ namespace MultiverseServerTest.Tests.UserApiServiceTest
             Assert.Equal("Ward", model.lastname);
             Assert.Equal(1, model.nbrOfFollowed);
             Assert.Equal(1, model.nbrOfFollower);
+            Assert.True(model.isAFollower);
+            Assert.False(model.isFollowed);
+            Assert.False(model.isFollowerRequestPending);
+            Assert.False(model.isFollowedRequestPending);
         }
 
         [Fact]
-        public void GetUserInfo_GetUser2Info_Pass()
+        public void GetUserInfo_GetUser2InfoFrom1_Pass()
         {
             UserWithRelationDbContext.TestSetUp(DbContext);
 
-            ApiResponse response = UserApiService.GetUserInfo(DbContext, 2);
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, 2, 1);
 
             Assert.Equal(200, response.code);
             Assert.Equal(typeof(UserResponseModel), response.obj.GetType());
@@ -60,6 +64,52 @@ namespace MultiverseServerTest.Tests.UserApiServiceTest
             Assert.Equal("Doe", model.lastname);
             Assert.Equal(0, model.nbrOfFollowed);
             Assert.Equal(1, model.nbrOfFollower);
+            Assert.False(model.isAFollower);
+            Assert.True(model.isFollowed);
+            Assert.False(model.isFollowerRequestPending);
+            Assert.False(model.isFollowedRequestPending);
+        }
+
+        [Fact]
+        public void GetUserInfo_GetUser1InfoFrom3_Pass()
+        {
+            UserWithRelationDbContext.TestSetUp(DbContext);
+
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, 1, 3);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(UserResponseModel), response.obj.GetType());
+            UserResponseModel model = (UserResponseModel)response.obj;
+            Assert.Equal(1, model.userID);
+            Assert.Equal("Mike", model.firstname);
+            Assert.Equal("Ward", model.lastname);
+            Assert.Equal(1, model.nbrOfFollowed);
+            Assert.Equal(1, model.nbrOfFollower);
+            Assert.False(model.isAFollower);
+            Assert.False(model.isFollowed);
+            Assert.True(model.isFollowerRequestPending);
+            Assert.False(model.isFollowedRequestPending);
+        }
+
+        [Fact]
+        public void GetUserInfo_GetUser3InfoFrom1_Pass()
+        {
+            UserWithRelationDbContext.TestSetUp(DbContext);
+
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, 3, 1);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(UserResponseModel), response.obj.GetType());
+            UserResponseModel model = (UserResponseModel)response.obj;
+            Assert.Equal(3, model.userID);
+            Assert.Equal("Bird", model.firstname);
+            Assert.Equal("Man", model.lastname);
+            Assert.Equal(0, model.nbrOfFollowed);
+            Assert.Equal(0, model.nbrOfFollower);
+            Assert.False(model.isAFollower);
+            Assert.False(model.isFollowed);
+            Assert.False(model.isFollowerRequestPending);
+            Assert.True(model.isFollowedRequestPending);
         }
 
         [Fact]
@@ -67,7 +117,7 @@ namespace MultiverseServerTest.Tests.UserApiServiceTest
         {
             UserWithRelationDbContext.TestSetUp(DbContext);
 
-            ApiResponse response = UserApiService.GetUserInfo(DbContext, 1000);
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, 1000, 1);
 
             Assert.Equal((int)HttpStatusCode.Forbidden, response.code);
             Assert.Equal(typeof(ErrorApiModel), response.obj.GetType());

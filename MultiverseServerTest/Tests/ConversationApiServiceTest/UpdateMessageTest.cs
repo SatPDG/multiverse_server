@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
+using MultiverseServer.ApiModel.Model;
 using MultiverseServer.ApiModel.Request.Conversation;
 using MultiverseServer.ApiServices;
 using MultiverseServer.DatabaseContext;
@@ -41,7 +42,12 @@ namespace MultiverseServerTest.Tests.ConversationApiServiceTest
             ApiResponse response = ConversationApiService.UpdateMessage(DbContext, 1, 1, 3, request);
 
             Assert.Equal(200, response.code);
-            Assert.Equal(typeof(EmptyResult), response.obj.GetType());
+            Assert.Equal(typeof(MessageApiModel), response.obj.GetType());
+            MessageApiModel model = (MessageApiModel)response.obj;
+            Assert.Equal(3, model.messageID);
+            Assert.Equal(1, model.conversationID);
+            Assert.Equal(1, model.authorID);
+            Assert.Equal("newMessage", model.message);
 
             MessageDbModel dbModel = DbContext.message.Find(3);
             Assert.Equal(3, dbModel.messageID);

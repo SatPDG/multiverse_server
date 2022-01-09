@@ -312,12 +312,17 @@ namespace MultiverseServer.ApiServices
             // Update the message
             dbModel.message = request.message;
             bool isDone = ConversationDbService.UpdateMessage(dbContext, userID, messageID, dbModel);
+
             if (!isDone)
             {
                 response.code = (int)HttpStatusCode.InternalServerError;
                 response.obj = new ErrorApiModel((int)ErrorType.IllegalAction, ErrorMessage.ILLEGAL_ACTION);
                 return response;
             }
+
+            // Get the message
+            MessageApiModel apiModel = MessageApiModel.ToApiModel(dbModel);
+            response.obj = apiModel;
 
             return response;
         }

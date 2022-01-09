@@ -21,7 +21,7 @@ namespace MultiverseServer.ApiServices
 
         }
 
-        public static ApiResponse GetUserInfo(MultiverseDbContext dbContext, int userID)
+        public static ApiResponse GetUserInfo(MultiverseDbContext dbContext, int userID, int callerUserID)
         {
             ApiResponse response = new ApiResponse();
 
@@ -42,6 +42,24 @@ namespace MultiverseServer.ApiServices
             apiModel.lastname = model.lastname;
             apiModel.nbrOfFollower = RelationshipDbService.GetFollowerOfUserCount(dbContext, userID);
             apiModel.nbrOfFollowed = RelationshipDbService.GetFollowedOfUserCount(dbContext, userID);
+            apiModel.isAFollower = RelationshipDbService.IsFollowerOfUser(dbContext, userID, callerUserID);
+            if(apiModel.isAFollower)
+            {
+                apiModel.isFollowerRequestPending = false;
+            }
+            else
+            {
+                apiModel.isFollowerRequestPending = RelationshipDbService.IsRequestFollowerOfUser(dbContext, userID, callerUserID);
+            }
+            apiModel.isFollowed = RelationshipDbService.IsFollowedOfUser(dbContext, userID, callerUserID);
+            if (apiModel.isFollowed)
+            {
+                apiModel.isFollowedRequestPending = false;
+            }
+            else
+            {
+                apiModel.isFollowedRequestPending = RelationshipDbService.IsRequestFollowedOfUser(dbContext, userID, callerUserID);
+            }
 
             response.obj = apiModel;
             return response;

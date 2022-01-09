@@ -37,7 +37,11 @@ namespace MultiverseServer.Controllers
         [HttpGet("{userID}")]
         public IActionResult GetUserInfo(int userID)
         {
-            ApiResponse response = UserApiService.GetUserInfo(DbContext, userID);
+            // Get the user id.
+            string token = HttpRequestUtil.GetTokenFromRequest(Request);
+            int callerUserID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
+
+            ApiResponse response = UserApiService.GetUserInfo(DbContext, userID, callerUserID);
             Response.StatusCode = response.code;
 
             return new JsonResult(response.obj);

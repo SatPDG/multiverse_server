@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MultiverseServer.ApiModel.Error;
+using MultiverseServer.ApiModel.Response;
 using MultiverseServer.ApiServices;
 using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
 using MultiverseServerTest.Database;
+using MultiverseServerTest.Database.DatabaseContext;
 using MultiverseServerTest.TestSetUp;
 using System;
 using System.Collections.Generic;
@@ -63,6 +65,21 @@ namespace MultiverseServerTest.Tests.RelationshipApiServiceTest
             Assert.Equal(1, dbmodel.objectID);
             Assert.NotNull(dbmodel.date);
             Assert.Equal((byte)NotificationType.NEW_FOLLOWER_REQ, dbmodel.notificationType);
+        }
+
+        [Fact]
+        public void SendRequest_SendRequest_UserInfoOK()
+        {
+            UserDbContext.SetUp(DbContext);
+
+            ApiResponse response = RelationshipApiService.SendRequest(DbContext, 1, 2);
+            response = UserApiService.GetUserInfo(DbContext, 2, 1);
+
+            Assert.Equal(200, response.code);
+            Assert.Equal(typeof(UserResponseModel), response.obj.GetType());
+            UserResponseModel model = (UserResponseModel)response.obj;
+            Assert.False(model.isFollowerRequestPending);
+            Assert.True(model.isFollowedRequestPending);
         }
 
         [Fact]
