@@ -34,12 +34,35 @@ namespace MultiverseServer.DatabaseService
             return userList;
         }
 
-        public static IList<int> GetConversationUser(MultiverseDbContext dbContext, int conversationID, int offset, int count)
-        {
-            IList<int> userList = null;
+        //public static IList<int> GetConversationUser(MultiverseDbContext dbContext, int conversationID, int offset, int count)
+        //{
+        //    IList<int> userList = null;
 
-            // Get the conversation user
-            userList = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Select(c => (int)c.conversationUserID).Skip(offset).Take(count).ToList();
+        //    // Get the conversation user
+        //    userList = dbContext.conversationUser.Where(cu => cu.conversationID == conversationID).Select(c => (int)c.conversationUserID).Skip(offset).Take(count).ToList();
+        //    return userList;
+        //}
+
+        public static IList<UserDbModel> GetConversationUser(MultiverseDbContext dbContext, int conversationID, int offset, int count)
+        {
+            IList<UserDbModel> userList = dbContext.conversationUser.Where(c => c.conversationID == conversationID)
+                .Join(dbContext.user,
+                c => c.userID,
+                u => u.userID,
+                (c, u) => new
+                {
+                    u.userID,
+                    u.firstname,
+                    u.lastname,
+                    u.lastLocation,
+                }).Select(c => new UserDbModel
+                {
+                    userID = c.userID,
+                    firstname = c.firstname,
+                    lastname = c.lastname,
+                    lastLocation = c.lastLocation,
+                }).Skip(offset).Take(count).ToList(); ;
+
             return userList;
         }
 

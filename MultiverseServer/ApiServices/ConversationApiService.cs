@@ -5,6 +5,7 @@ using MultiverseServer.ApiModel.Request.Conversation;
 using MultiverseServer.ApiModel.Request.Util;
 using MultiverseServer.ApiModel.Response;
 using MultiverseServer.ApiModel.Response.Conversation;
+using MultiverseServer.ApiModel.Response.User;
 using MultiverseServer.Database.MultiverseDbModel;
 using MultiverseServer.DatabaseContext;
 using MultiverseServer.DatabaseModel;
@@ -356,6 +357,37 @@ namespace MultiverseServer.ApiServices
             // Create the api obj
             MessageListResponseModel apiModel = MessageListResponseModel.ToApiModel(messageList, request.count, request.offset, totalNumber);
             response.obj = apiModel;
+
+            return response;
+        }
+
+        public static ApiResponse GetUserFromConversation(MultiverseDbContext dbContext, int userID, int conversationID, ListRequestModel request)
+        {
+            ApiResponse response = new ApiResponse();
+
+            // Verify the list access
+            if (!ListAccessValidator.NormalizeListAccess(request))
+            {
+                response.code = (int)HttpStatusCode.BadRequest;
+                response.obj = new ErrorApiModel((int)ErrorType.BadListAccess, ErrorMessage.BAD_LIST_ACCESS);
+                return response;
+            }
+
+            // Make sure the user is in the conversation
+            bool isInConv = ConversationDbService.IsUserInConversation(dbContext, userID, conversationID);
+            if (!isInConv)
+            {
+                response.code = (int)HttpStatusCode.Forbidden;
+                response.obj = new ErrorApiModel((int)ErrorType.BadIdentificationNumber, ErrorMessage.BAD_IDENTIFICATION_NUMBER);
+                return response;
+            }
+
+            // Get the list of user in the conversation
+            IList<UserDbModel> userDbList = ConversationDbService.GetConversationUser(dbContext, conversationID, request.offset, request.count);
+            int totalSize = ConversationDbService.GetNumberOfUser(dbContext, conversationID);
+
+            UserListResponseModel responseModel = UserListResponseModel.ToApiModel(userDbList, request.count, request.offset, totalSize);
+            response.obj = responseModel;
 
             return response;
         }

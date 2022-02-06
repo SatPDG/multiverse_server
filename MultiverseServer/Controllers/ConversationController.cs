@@ -164,7 +164,7 @@ namespace MultiverseServer.Controllers
         }
 
         [Authorize]
-        [HttpPost("{conversationID}/users")]
+        [HttpPost("{conversationID}/add")]
         public IActionResult AddUserToConversation(int conversationID, [FromBody] IDListRequestModel request)
         {
             // Get the user id
@@ -186,6 +186,20 @@ namespace MultiverseServer.Controllers
             int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
 
             ApiResponse response = ConversationApiService.RemoveUsersFromConversation(DbContext, userID, conversationID, request);
+            Response.StatusCode = response.code;
+
+            return new JsonResult(response.obj);
+        }
+
+        [Authorize]
+        [HttpPost("{conversationID}/users")]
+        public IActionResult GetUserFromConversation(int conversationID, [FromBody] ListRequestModel request)
+        {
+            // Get the user id
+            string token = HttpRequestUtil.GetTokenFromRequest(Request);
+            int userID = int.Parse(new JwtTokenService(Config).GetJwtClaim(token, "userID"));
+
+            ApiResponse response = ConversationApiService.GetUserFromConversation(DbContext, userID, conversationID, request);
             Response.StatusCode = response.code;
 
             return new JsonResult(response.obj);
